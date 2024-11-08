@@ -92,6 +92,6 @@ average_for_N = round(sum(previous_values) / best_N, 2)
 
         # print(f"N = {N}, K = {K}, Total Effect = {total_effect}")
 
-print(f"Лучшие параметры: N = {best_N}, K = {best_K}")
-print(f"Средний эффект за {N}: {average_for_N}")
-print(f"Порог: {round(average_for_N * best_K, 0)}")
+print(f"лучшие параметры: N = {best_N}, K = {best_K}")
+print(f"Средний эффект за {best_N} дней: {int(average_for_N)} руб.")
+print(f"Порог: {int(average_for_N * best_K)} руб.")

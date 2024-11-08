@@ -41,8 +41,8 @@ def calculate_total_cost(price, contractual_volume, availability_days, total_day
 # total_cost = calculate_total_cost(
 #     price=437402,
 #     contractual_volume=6,
-#     availability_days=8,
-#     total_days=23,
+#     availability_days=10,
+#     total_days=21,
 #     reduction_hours=4,
 #     successful_discharge=2,
 #     total_discharge=2,

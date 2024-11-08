@@ -1,59 +1,42 @@
-import aiohttp
-import asyncio
+from datetime import datetime, timedelta
 
-async def fetch_data(url):
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                # Проверяем статус ответа
-                if response.status == 200:
-                    return await response.text()
-                else:
-                    print(f"Ошибка сервера: {response.status}")
-                    return None
-    except aiohttp.ClientError as e:
-        print(f"Ошибка соединения: {e}")
-        return None
 
-async def process_data(url):
-    content = await fetch_data(url)
-    if content is None:
-        return []
+def get_date_slice_from_gbn(data, start_date_str, num_days):
+    # Преобразуем строку даты в объект даты
+    start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+    result = {}
 
-    # Обработка данных
-    content = [item for i, item in enumerate(content.splitlines()) if i % 2]
+    # Сортируем даты в объекте в порядке убывания
+    sorted_dates = sorted(data.keys(), reverse=True)
 
-    numb_list = []
+    # Проходим по отсортированным датам
+    for date_str in sorted_dates:
+        current_date = datetime.strptime(date_str, "%Y-%m-%d")
 
-    for i in content:
-        list_n = ''.join(c if c != ' ' and c != '\n' else '' for c in i).split()
-        list_n = [int(item) for i, item in enumerate(list_n) if i % 2]
+        # Проверяем, входит ли текущая дата в диапазон
+        if current_date <= start_date:
+            result[date_str] = data[date_str]
+            num_days -= 1
 
-        numb_list.append(list_n)
+        # Если достигли нужного количества дней, выходим из цикла
+        if num_days == 0:
+            break
 
-    n = len(numb_list)
-    left, right = 0, n - 1
-    top, bottom = 0, n - 1
+    # Сортируем результат по возрастанию дат
+    sorted_result = dict(sorted(result.items(), key=lambda x: x[0]))
 
-    result = []
+    return sorted_result
 
-    while left <= right and top <= bottom:
-        for i in range(top, bottom + 1):
-            result.append(numb_list[i][left])
-        left += 1
 
-        for i in range(left, right + 1):
-            result.append(numb_list[bottom][i])
-        bottom -= 1
+# Пример использования
+data = {
+    "2024-10-24": [{'14': 2652.4227}, {'15': 2660.49}],
+    "2024-10-23": [{'15': 2668.4161}, {'16': 2636.284}],
+    "2024-10-22": [{'15': 2633.1873}, {'16': 2620.3796}],
+    "2024-10-20": [{'15': 2633.1873}, {'16': 2620.3796}],
+    "2024-10-17": [{'15': 2633.1873}, {'16': 2620.3796}],
+    "2024-10-15": [{'15': 2633.1873}, {'16': 2620.3796}]
+}
 
-        if left <= right:
-            for i in range(bottom, top - 1, -1):
-                result.append(numb_list[i][right])
-            right -= 1
-
-        if top <= bottom:
-            for i in range(right, left - 1, -1):
-                result.append(numb_list[top][i])
-            top += 1
-
-    return result
+date_slice = get_date_slice(data, "2024-10-23", 5)
+print(date_slice)

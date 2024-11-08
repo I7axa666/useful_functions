@@ -46,12 +46,12 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
 data = financial_result_matrices(
     price=437402,
     contractual_volume=6,
-    availability_days=8,
-    unavailability_days=0,
-    total_days=23,
+    availability_days=1, # дни готовности
+    unavailability_days=2, # дни неготовности
+    total_days=21,
     reduction_hours=4,
-    successful_discharge=2,
-    total_discharge=4,
+    successful_discharge=0, # успешные разгрузки
+    total_discharge=3, # количество оставшихся событий
     total_events=5
 )
 
@@ -81,3 +81,5 @@ with open("New_File.csv", mode="w", newline='', encoding="utf-8-sig") as file:
                     row.append(int(value) if value != '-' else '')
             # Записываем строку в CSV
             writer.writerow(row)
+
+print("New_File.csv is done")
