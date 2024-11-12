@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 import os
+from gbn_utilits import get_work_week_days, find_nearest_date
 
 # Читаем XML файл
 parser = ET.XMLParser(encoding="utf-8")
@@ -88,10 +89,12 @@ for N in range(3, 11):
 previous_values = [work_data[j]["Эффект от ЦЗСП, руб"] for j in range(len(work_data)-best_N-1, len(work_data)-1)]
 average_for_N = round(sum(previous_values) / best_N, 2)
 
-# print(work_data[len(work_data) - 1])
+average_for_N_formatted_number = f"{int(average_for_N):,}".replace(",", " ")
+threshold_formatted_number = f"{int(average_for_N * best_K):,}".replace(",", " ")
+last_date = datetime.date(work_data[-2]['Дата']).isoformat()
+future_date = find_nearest_date(get_work_week_days()['work_days'], last_date)
+dd = datetime.strptime(future_date, "%Y-%m-%d")
 
-        # print(f"N = {N}, K = {K}, Total Effect = {total_effect}")
-
-print(f"лучшие параметры: N = {best_N}, K = {best_K}")
-print(f"Средний эффект за {best_N} дней: {int(average_for_N)} руб.")
-print(f"Порог: {int(average_for_N * best_K)} руб.")
+print(f"На {dd.day}.{dd.month} лучшие параметры: N = {best_N}, K = {best_K}")
+print(f"Средний эффект за {best_N} дней: {average_for_N_formatted_number} руб.")
+print(f"Порог: {threshold_formatted_number} руб.")

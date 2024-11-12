@@ -1,42 +1,38 @@
-from datetime import datetime, timedelta
+import itertools
+from datetime import datetime
 
 
-def get_date_slice_from_gbn(data, start_date_str, num_days):
-    # Преобразуем строку даты в объект даты
-    start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-    result = {}
+def generate_combinations(dates):
+    # Сортируем даты по возрастанию
+    sorted_dates = sorted(dates, key=lambda date: datetime.strptime(date, "%Y-%m-%d"))
 
-    # Сортируем даты в объекте в порядке убывания
-    sorted_dates = sorted(data.keys(), reverse=True)
+    # Генерируем все возможные комбинации из 20 дней
+    total_combinations = itertools.combinations(sorted_dates, 20)
+    total_count = 0
 
-    # Проходим по отсортированным датам
-    for date_str in sorted_dates:
-        current_date = datetime.strptime(date_str, "%Y-%m-%d")
+    # Подсчитываем общее количество комбинаций
+    for _ in itertools.combinations(sorted_dates, 20):
+        total_count += 1
 
-        # Проверяем, входит ли текущая дата в диапазон
-        if current_date <= start_date:
-            result[date_str] = data[date_str]
-            num_days -= 1
+    # Перебираем комбинации и обрабатываем их по мере генерации
+    for i, combination in enumerate(total_combinations, 1):
+        # Здесь можно обработать комбинацию, например, записать в файл
+        # print(list(combination)) # Для демонстрации, но это может быть заменено на запись в файл
 
-        # Если достигли нужного количества дней, выходим из цикла
-        if num_days == 0:
-            break
-
-    # Сортируем результат по возрастанию дат
-    sorted_result = dict(sorted(result.items(), key=lambda x: x[0]))
-
-    return sorted_result
+        # Выводим процент выполнения
+        if i % 1000 == 0 or i == total_count:
+            print(f"Progress: {i / total_count * 100:.2f}%")
 
 
 # Пример использования
-data = {
-    "2024-10-24": [{'14': 2652.4227}, {'15': 2660.49}],
-    "2024-10-23": [{'15': 2668.4161}, {'16': 2636.284}],
-    "2024-10-22": [{'15': 2633.1873}, {'16': 2620.3796}],
-    "2024-10-20": [{'15': 2633.1873}, {'16': 2620.3796}],
-    "2024-10-17": [{'15': 2633.1873}, {'16': 2620.3796}],
-    "2024-10-15": [{'15': 2633.1873}, {'16': 2620.3796}]
-}
+dates = [
+    "2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05",
+    "2024-01-06", "2024-01-07", "2024-01-08", "2024-01-09", "2024-01-10",
+    "2024-01-11", "2024-01-12", "2024-01-13", "2024-01-14", "2024-01-15",
+    "2024-01-16", "2024-01-17", "2024-01-18", "2024-01-19", "2024-01-20",
+    "2024-01-21", "2024-01-22", "2024-01-23", "2024-01-24", "2024-01-25",
+    "2024-01-26", "2024-01-27", "2024-01-28", "2024-01-29", "2024-01-30"
+]
 
-date_slice = get_date_slice(data, "2024-10-23", 5)
-print(date_slice)
+generate_combinations(dates)
+

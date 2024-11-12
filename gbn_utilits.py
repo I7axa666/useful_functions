@@ -1,215 +1,177 @@
-from collections import defaultdict
-import pprint
 from datetime import datetime, timedelta
+import itertools
+import json
 
-def find_date_or_next(dates_list, target_date):
-    # Сортируем список дат в порядке убывания
-    sorted_dates = sorted(dates_list, reverse=False)
-
-    # Проверяем, есть ли целевая дата в списке
-    if target_date in sorted_dates:
-        return target_date
-
-    # Ищем следующую более старшую дату
+def find_nearest_date(dates_list, target_date, direction='next'):
+    sorted_dates = sorted(dates_list, reverse=(direction == 'previous'))
     for date in sorted_dates:
-        if date > target_date:
+        if (direction == 'next' and date > target_date) or (direction == 'previous' and date < target_date):
             return date
-
-    # Если ни целевой, ни более старшей даты нет, возвращаем None
-    return None
-
-def find_date_or_prevous(dates_list, target_date):
-    # Сортируем список дат в порядке убывания
-    sorted_dates = sorted(dates_list, reverse=True)
-
-    # Проверяем, есть ли целевая дата в списке
-    if target_date in sorted_dates:
-        return target_date
-
-    # Ищем следующую более старшую дату
-    for date in sorted_dates:
-        if date < target_date:
-            return date
-
-    # Если ни целевой, ни более старшей даты нет, возвращаем None
-    return None
+    return target_date if target_date in dates_list else None
 
 def get_value_by_date_and_hour(data, date, hour):
-    # Проверяем, есть ли указанная дата в данных
-    if date in data:
-        # Проходим по списку значений для указанной даты
-        for entry in data[date]:
-            # Проверяем, есть ли указанный час в текущем словаре
-            if hour in entry:
-                return entry[hour]
-    # Если дата или час не найдены, возвращаем None
-    return 0
-def average_gbn_for_numb(hours_range, weekdays, sorted_dates, numb=0):
+    # Ensure that we only access entries if they are dictionaries
+    return next((entry.get(hour, 0) for entry in data.get(date, []) if isinstance(entry, dict) and hour in entry), 0)
 
-    # Выбор предшествующих 10 дней
+def calculate_average_gbn(hours_range, weekdays, sorted_dates, num_days=10):
+    num_days = max(1, num_days)
     latest_date = sorted_dates[0]
-    numb_int = 10 if numb == 0 else numb
-    previous_10_days = sorted_dates[1:numb_int + 1]
+    dates_range = sorted_dates[1:num_days + 1]
+    averages = {
+        str(hour): round(sum(entry.get(str(hour), 0) for date in dates_range for entry in weekdays[date]) / num_days, 4)
+        for hour in hours_range
+    }
+    return {latest_date: [{hour: avg} for hour, avg in averages.items()]}
 
-    # Инициализация словаря для хранения средних значений
-    averages = defaultdict(list)
+def calculate_overall_average(hours_range, weekdays, sorted_dates, target_date=None, num_days=10):
+    # date_start = target_date or sorted_dates[0]
+    dates_range = sorted_dates[:num_days]
+    total, count = 0, 0
     for hour in hours_range:
         hour_str = str(hour)
-        total = 0
-        count = 0
-        for date in previous_10_days:
-            for entry in weekdays[date]:
-                if hour_str in entry:
-                    total += entry[hour_str]
-                    count += 1
-        if count > 0:
-            averages[hour_str] = round(total / count, 4)
+        for date in dates_range:
+            total += sum(entry.get(hour_str, 0) for entry in weekdays[date] if isinstance(entry, dict))
+            count += sum(1 for entry in weekdays[date] if isinstance(entry, dict) and hour_str in entry)
+    return round(total / count, 4) if count else 0
 
-    # Формирование результата
-    result = {latest_date: [{hour: avg} for hour, avg in averages.items()]}
+def tweak_values(hours_range, date, weekdays, gbns, days):
+    previous_date = find_nearest_date(days, date, 'previous')
+    adjustment = sum(
+        get_value_by_date_and_hour(weekdays, previous_date, str(hour)) - get_value_by_date_and_hour(gbns, previous_date, str(hour))
+        for hour in hours_range
+    )
+    return round(adjustment / 2, 4)
 
-    return result
-
-
-def average_for_numb(hours_range, weekdays, sorted_dates, date='', numb=0):
-    numb_int = 10 if numb == 0 else numb
-    date_str = sorted_dates[0] if date == '' else date
-    previous_10_days = sorted_dates[sorted_dates.index(date_str):numb_int]
-    total = 0
-    count = 0
-
-    for hour in hours_range:
-        hour_str = str(hour)
-
-        for date in previous_10_days:
-            for entry in weekdays[date]:
-                if hour_str in entry:
-                    total += entry[hour_str]
-                    count += 1
-
-    # Формирование результата
-    result = round(total / count, 4)
-
-    return result
-
-def get_value_by_date_and_hour(data, date, hour):
-    # Проверяем, есть ли указанная дата в данных
-    if date in data:
-        # Проходим по списку значений для указанной даты
-        for entry in data[date]:
-            # Проверяем, есть ли указанный час в текущем словаре
-            if hour in entry:
-                return entry[hour]
-    # Если дата или час не найдены, возвращаем None
-    return 0
-
-def tweak(hours_range_for_tweak, date, weekdays, gbns, days):
-    sorted(days)
-    result = 0
-    current_date_obj = datetime.strptime(date, '%Y-%m-%d')
-    previous_date_obj = current_date_obj - timedelta(days=1)
-    futer_date_obj = current_date_obj + timedelta(days=1)
-
-    previous_date_str = find_date_or_prevous(days, previous_date_obj.strftime('%Y-%m-%d'))
-    # futer_date_obj_str = find_date_or_prevous(days, futer_date_obj.strftime('%Y-%m-%d'))
-
-    for hour in hours_range_for_tweak:
-        hour_str = str(hour)
-        result += get_value_by_date_and_hour(weekdays, previous_date_str, hour_str) - get_value_by_date_and_hour(gbns, previous_date_str, hour_str)
-
-
-    return round(result / 2, 4)
-
-def get_gbns_with_tweak(gbns, tweaks, weekdays):
+def apply_gbns_with_tweaks(gbns, tweaks):
     gbns_with_tweak = {}
-    for day, hourly_consumption in weekdays.items():
-        # Инициализируем список для каждого дня только один раз
-        gbn_list_with_tweak = []
-        if day in gbns.keys():
-
-            # total_day_consumption = sum(consumption for hour in hourly_consumption for consumption in hour.values())
-
-            for hourly_gbn in gbns[day]:
-
-                if tweaks[day] / abs(list(hourly_gbn.values())[0]) > 0.2:
-                    for hour in hourly_gbn.keys():
-                        if tweaks[day] > 0:
-                            value = round(get_value_by_date_and_hour(gbns, day, hour) * 1.2, 4)
-                        else:
-                            value = round(get_value_by_date_and_hour(gbns, day, hour) * 0.8, 4)
-
-                    gbn_list_with_tweak.append({hour: value})
-
+    gbns_days = list(gbns.keys())
+    zero_tweak_day = gbns_days[-1]
+    for day, hourly_values in gbns.items():
+        adjusted_day = []
+        for hourly_gbn in gbns.get(day, []):
+            hour, value = next(iter(hourly_gbn.items()))
+            if day == zero_tweak_day:
+                adjusted_day.append({hour: round(value, 4)})
+            else:
+                tweak_factor = 1 if abs(tweaks[day] / value) <= 0.2 else 1.2 if tweaks[day] > 0 else 0.8
+                if tweak_factor == 1:
+                    adjusted_day.append({hour: round(value + tweaks[day], 4)})
                 else:
+                    adjusted_day.append({hour: round(value * tweak_factor, 4)})
 
-                    for hour in hourly_gbn.keys():
-                        # Добавляем данные только если они уникальны или соответствуют условиям
-                        value = round(get_value_by_date_and_hour(gbns, day, hour) + tweaks[day], 4)
-                        gbn_list_with_tweak.append({hour: value})
-
-                        # print(day, hour, get_value_by_date_and_hour(gbns, day, hour), tweaks[day])
-
-            gbns_with_tweak[day] = gbn_list_with_tweak
-
+        gbns_with_tweak[day] = adjusted_day
     return gbns_with_tweak
 
-
-def get_rmse(weekdays, gbns, num_days, reference_obj, start_date=''):
-    # Преобразуем строку даты в объект даты
-    # start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-    # pprint.pp(gbns)
-    total_difference = 0
-    count = 0
+def compute_rmse(weekdays, gbns, num_days, reference_obj, start_date=None):
     days = sorted(list(gbns.keys()), reverse=True)
-    start_date_str = days[0] if start_date == '' else start_date
-    start_index = int(days.index(start_date_str))
-    # pprint.pp(gbns)
+    start_index = days.index(start_date or days[0])
     range_days = days[start_index:start_index + num_days]
-    first_day = days[start_index + num_days - 1]
-    gbns[first_day] = reference_obj[first_day]
-    # print(first_day)
-    # Проходим по указанному количеству дней
-    for current_date in range_days:
-        # current_date = (start_date - timedelta(days=i)).strftime("%Y-%m-%d")
+    gbns.update({range_days[-1]: reference_obj.get(range_days[-1], [])})
 
-        if current_date in weekdays and current_date in gbns:
-            # Создаем словарь для быстрого доступа к значениям второго объекта
-            gbns_dict = {list(d.keys())[0]: list(d.values())[0] for d in gbns[current_date]}
-
-            # Проходим по каждому часу в первом объекте
-            for entry in weekdays[current_date]:
-                hour, value1 = list(entry.items())[0]
-                if hour in gbns_dict:
-                    # Вычисляем разницу и добавляем к общей сумме
-                    value2 = gbns_dict[hour]
-                    total_difference += (value1 - value2) ** 2
-                    count += 1
-
-    # Возвращаем среднее значение разницы
+    total_difference, count = 0, 0
+    for date in range_days:
+        if date in weekdays and date in gbns:
+            gbns_dict = {list(d.keys())[0]: list(d.values())[0] for d in gbns[date]}
+            for hour_entry in weekdays[date]:
+                if isinstance(hour_entry, dict):  # Ensure we only process dictionary entries
+                    hour, actual_value = next(iter(hour_entry.items()))
+                    predicted_value = gbns_dict.get(hour)
+                    if predicted_value is not None:
+                        total_difference += (actual_value - predicted_value) ** 2
+                        count += 1
     return round((total_difference / count) ** 0.5, 4) if count > 0 else None
 
-def get_date_slice_from_gbn(data, start_date_str, num_days):
-    # Преобразуем строку даты в объект даты
+def extract_date_slice(data, start_date_str, num_days):
+    num_days += 10
     start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-    result = {}
+    sliced_data = {date: data[date] for date in sorted(data.keys(), reverse=True) if datetime.strptime(date, "%Y-%m-%d") <= start_date}
+    return dict(list(sliced_data.items())[:num_days][::-1])
 
-    # Сортируем даты в объекте в порядке убывания
-    sorted_dates = sorted(data.keys(), reverse=True)
+def generate_combinations(dates):
+    # Сортируем даты по возрастанию
+    sorted_dates = sorted(dates, key=lambda date: datetime.strptime(date, "%Y-%m-%d"))
 
-    # Проходим по отсортированным датам
-    for date_str in sorted_dates:
-        current_date = datetime.strptime(date_str, "%Y-%m-%d")
+    # Генерируем все возможные комбинации из 20 дней
+    total_combinations = itertools.combinations(sorted_dates, 20)
+    total_count = 0
 
-        # Проверяем, входит ли текущая дата в диапазон
-        if current_date <= start_date:
-            result[date_str] = data[date_str]
-            num_days -= 1
+    # Подсчитываем общее количество комбинаций
+    for _ in itertools.combinations(sorted_dates, 20):
+        total_count += 1
 
-        # Если достигли нужного количества дней, выходим из цикла
-        if num_days == 0:
-            break
+    # Перебираем комбинации и обрабатываем их по мере генерации
+    for i, combination in enumerate(total_combinations, 1):
+        # Здесь можно обработать комбинацию, например, записать в файл
+        # print(list(combination)) # Для демонстрации, но это может быть заменено на запись в файл
 
-    # Сортируем результат по возрастанию дат
-    sorted_result = dict(sorted(result.items(), key=lambda x: x[0]))
+        # Выводим процент выполнения
+        if i % 1000 == 0 or i == total_count:
+            print(f"Progress: {i / total_count * 100:.2f}%")
 
-    return sorted_result
+def get_work_week_days():
+    with open('templates/weekdays.json') as f:
+        days = json.load(f)
+    return days
+
+def get_hourly_consumption(path):
+    with open(path) as f:
+        days_for_gbn = json.load(f)
+    return days_for_gbn
+
+def get_rmse_rrmse(data):
+    time_zone = data['time_zone']
+    target_date = data['target_date']
+    number_of_days_for_gbn = data['number_of_days_for_gbn']
+    days_for_gbn = data['days_for_gbn']
+
+    hours_range = range(8, 22) if time_zone == 1 else range(5, 18)
+    hours_range_for_tweak = range(16, 18) if time_zone == 1 else range(12, 14)
+    days = get_work_week_days()
+    gbns = {}
+
+    # Processed Data Preparation
+    workdays = {date: data for date, data in days_for_gbn.items() if date in days['work_days']}
+    weekdays = extract_date_slice(workdays, target_date, number_of_days_for_gbn)
+    sorted_dates = sorted(weekdays.keys(), reverse=True)
+
+    # Calculations
+    for i, date in enumerate(sorted_dates):
+        if i + number_of_days_for_gbn < len(sorted_dates):
+            gbns.update(calculate_average_gbn(hours_range, weekdays, sorted_dates[i:i + 20], number_of_days_for_gbn))
+
+    tweaks = {date: tweak_values(hours_range_for_tweak, date, weekdays, gbns, days['work_days']) for date in
+              sorted_dates if sorted_dates.index(date) < len(sorted_dates) - 10}
+    tweaks_yesterday = {date: 0 if date in days['mondays_or_first_day'] else tweak for date, tweak in tweaks.items()}
+
+    # Results with and without tweak adjustments
+    gbns_with_tweak = apply_gbns_with_tweaks(gbns, tweaks)
+    gbns_with_tweak_yesterday = apply_gbns_with_tweaks(gbns, tweaks_yesterday)
+
+    # RMSE Calculations
+    rmse_no_tweak = compute_rmse(weekdays, gbns, number_of_days_for_gbn, gbns)
+    rmse_with_tweak = compute_rmse(weekdays, gbns_with_tweak, number_of_days_for_gbn, gbns)
+    rmse_with_tweak_yesterday = compute_rmse(weekdays, gbns_with_tweak_yesterday, number_of_days_for_gbn, gbns)
+
+    # Additional Metrics
+    doubled_rmse_no_tweak = round(rmse_no_tweak * 2, 4)
+    doubled_rmse_with_tweak = round(rmse_with_tweak * 2, 4)
+    doubled_rmse_with_tweak_yesterday = round(rmse_with_tweak_yesterday * 2, 4)
+
+    rrmse_no_tweak = round(rmse_no_tweak / calculate_overall_average(hours_range, weekdays, sorted_dates, target_date,
+                                                                     number_of_days_for_gbn), 3)
+    rrmse_with_tweak = round(
+        rmse_with_tweak / calculate_overall_average(hours_range, weekdays, sorted_dates, target_date,
+                                                    number_of_days_for_gbn), 3)
+    rrmse_with_tweak_yesterday = round(
+        rmse_with_tweak_yesterday / calculate_overall_average(hours_range, weekdays, sorted_dates, target_date,
+                                                              number_of_days_for_gbn), 3)
+
+    return {
+        'doubled_rmse_no_tweak': doubled_rmse_no_tweak,
+        'rrmse_no_tweak': rrmse_no_tweak,
+        'doubled_rmse_with_tweak': doubled_rmse_with_tweak,
+        'rrmse_with_tweak': rrmse_with_tweak,
+        'doubled_rmse_with_tweak_yesterday': doubled_rmse_with_tweak_yesterday,
+        'rrmse_with_tweak_yesterday': rrmse_with_tweak_yesterday,
+        'weekdays': weekdays,
+    }

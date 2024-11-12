@@ -1,8 +1,10 @@
 import pandas as pd
 import json
+import os
+from datetime import datetime, date
 
 # Загрузка данных из файла XLSX
-file_path = 'templates/51070.xlsx' # Укажите путь к вашему файлу
+file_path = os.path.join("C:", os.sep, "Users", "psolovey.GSN07", "Downloads", "51070.xlsx") # Укажите путь к вашему файлу
 df = pd.read_excel(file_path)
 
 # Преобразование столбца "дата" в формат ISO 8601 (гггг-мм-дд)
@@ -32,7 +34,7 @@ for date, group in grouped:
     data_dict[date] = intervals
 
 # Определение имени выходного файла
-output_file_name = 'templates/51070.json'
+output_file_name = f'templates/51070.json'
 
 # Запись данных в JSON файл
 with open(output_file_name, 'w', encoding='utf-8') as json_file:
