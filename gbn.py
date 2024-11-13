@@ -1,19 +1,12 @@
 import pprint
-from gbn_utilits import *
+from get_best_rrmse import *
+from gbn_utilits import get_hourly_consumption
 
 # Data Loading
-days_for_gbn = get_hourly_consumption('templates/51070.json')
+days_for_gbn = get_hourly_consumption('templates/51070_31.json')
+time_zone = 1
 
+pprint.pp(get_best_rmse(days_for_gbn, time_zone))
 
-# Initialization
-data = {
-    'time_zone': 1,
-    'target_date': '2024-10-31',
-    'number_of_days_for_gbn': 10,
-    'days':  get_work_week_days(),
-    'days_for_gbn': days_for_gbn
-}
-
-pprint.pp(get_rmse_rrmse(data))
-
+# get_best_rmse(days_for_gbn, time_zone)
 

@@ -1,6 +1,39 @@
-import pandas as pd
+# import pandas as pd
+# import json
+# import os
+#
+# # Load the data from the XLSX file
+# file_path = os.path.join("C:", os.sep, "Users", "psolovey.GSN07", "Downloads", "51070.xlsx")
+# df = pd.read_excel(file_path)
+#
+# # Convert 'дата' to ISO 8601 format and 'интервал'/'потребление' to numeric types
+# df['дата'] = pd.to_datetime(df['дата'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
+# df['интервал'] = df['интервал'].astype(int)
+# df['потребление'] = df['потребление'].astype(float)
+#
+# # Sort by date (not necessary unless needed for output order)
+# df.sort_values(by='дата', inplace=True)
+#
+# # Reshape data into JSON-ready format
+# # Group by 'дата' and convert each group to a dictionary
+# data_dict = (
+#     df.groupby('дата')[['интервал', 'потребление']]  # Select only 'интервал' and 'потребление'
+#     .apply(lambda x: x.set_index('интервал')['потребление'].to_dict())  # Convert each group to dict
+#     .to_dict()
+# )
+#
+# # Output file path
+# output_file_name = 'templates/51070.json'
+#
+# # Save to JSON
+# with open(output_file_name, 'w', encoding='utf-8') as json_file:
+#     json.dump(data_dict, json_file, ensure_ascii=False, indent=4)
+#
+# print(f"Data successfully saved to {output_file_name}")
+
 import json
 import os
+import pandas as pd
 from datetime import datetime, date
 
 # Загрузка данных из файла XLSX
