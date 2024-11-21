@@ -27,11 +27,11 @@ def process_pdfs(directory):
     df = pd.DataFrame(data, columns=['Filename', 'Extracted Data'])
 
     # Создаем директорию, если она не существует
-    os.makedirs('results', exist_ok=True)
+    os.makedirs('../results', exist_ok=True)
 
     # Сохраняем файл в директорию results
     df.to_excel('results/output.xlsx', index=False)
 
 # Укажите путь к директории с PDF-файлами
-directory_path = './pdf/'
+directory_path = '../pdf/'
 process_pdfs(directory_path)

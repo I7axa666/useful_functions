@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 import os
-from gbn_utilits import get_work_week_days, find_nearest_date
+from gbn_calculation.gbn_utilits import get_work_week_days, find_nearest_date
 
 # Читаем XML файл
 parser = ET.XMLParser(encoding="utf-8")

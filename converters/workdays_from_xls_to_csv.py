@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 
 # Загрузка данных из файла XLSX
-file_path = 'templates/weekdays.xlsx' # Укажите путь к вашему файлу
+file_path = '../templates/weekdays.xlsx'  # Укажите путь к вашему файлу
 df = pd.read_excel(file_path)
 
 # Преобразование дат в формат ISO 8601 (гггг-мм-дд)

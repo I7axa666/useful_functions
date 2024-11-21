@@ -1,6 +1,5 @@
-import pprint
 import csv
-from total_cost import calculate_total_cost
+from cost_calculstion.total_cost import calculate_total_cost
 
 def financial_result_matrices(price, contractual_volume, availability_days, total_days, reduction_hours, total_events, successful_discharge, total_discharge, unavailability_days):
     results = []
@@ -46,12 +45,12 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
 data = financial_result_matrices(
     price=437402,
     contractual_volume=6,
-    availability_days=1, # дни готовности
-    unavailability_days=2, # дни неготовности
-    total_days=21,
+    availability_days=0, # дни готовности
+    unavailability_days=0, # дни неготовности
+    total_days=17,
     reduction_hours=4,
     successful_discharge=0, # успешные разгрузки
-    total_discharge=3, # количество оставшихся событий
+    total_discharge=5, # количество оставшихся событий
     total_events=5
 )
 
@@ -64,7 +63,7 @@ for value_dict in first_values_list:
     column_headers.extend(value_dict.keys())
 # print(column_headers)
 
-with open("New_File.csv", mode="w", newline='', encoding="utf-8-sig") as file:
+with open("../New_Matrix.csv", mode="w", newline='', encoding="utf-8-sig") as file:
     writer = csv.writer(file, delimiter=';') # Используем точку с запятой как разделитель
 
     # Записываем заголовки
