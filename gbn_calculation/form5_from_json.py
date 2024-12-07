@@ -81,3 +81,6 @@ def form5_create(xlsx_file_name, time_zone):
     days_for_gbn = convert_xlsx_to_json(xlsx_file_name)
     data_dict = get_best_rmse(days_for_gbn, time_zone)
     forma5_from_json(data_dict)
+
+if __name__ == "__main__":
+    form5_create("51070.xlsx", 1)

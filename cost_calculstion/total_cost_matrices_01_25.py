@@ -15,13 +15,10 @@ def calculate_total_cost(price, contractual_volume, availability_days, total_day
     # print(f'distributed_volume={distributed_volume}')
 
     # Расчет недопоставки
-
-    k_part = round(1.25 / 1.5 * (total_discharge / total_events), 4)
-    # k_part = round(1.25/1.5 * (total_discharge / total_events) ** (0.85 * (total_days - availability_days) / total_days) * (1 - 0.5 * (total_days - availability_days) / total_days), 4)
+    # k_part = round(1.25 / 1.5 * (total_discharge / total_events), 4)
+    k_part = round(1.25/1.5 * (total_discharge / total_events) ** (0.85 * (total_days - availability_days) / total_days) * (1 - 0.5 * (total_days - availability_days) / total_days), 4)
     delta_5 = round((k_part * 1.5 * max(0, distributed_volume)), 4)
     undersupply_1 = round((delta_5 * unsuccessful_discharge * reduction_hours) / max(1, (total_discharge * reduction_hours)), 4)
-    # print(f'k_part={k_part}')
-    # print(f'delta_5={delta_5}')
     # print(f'undersupply_1={undersupply_1}')
 
     delta_2_2 = 1.075 * contractual_volume
