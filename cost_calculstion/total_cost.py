@@ -48,13 +48,14 @@ def calculate_total_cost(price, contractual_volume, availability_days, total_day
 # Пример вызова функции
 total_cost = calculate_total_cost(
     price=437402,
-    contractual_volume=1,
-    availability_days=2,
+    contractual_volume=4,
+    availability_days=21,
     total_days=21,
     reduction_hours=4, # длительность разгрузки
-    successful_discharge=1, # успешные разгрузки
-    total_discharge=1, # нарпавленные команды
+    successful_discharge=3, # успешные разгрузки
+    total_discharge=5, # нарпавленные команды
     total_events=5 # всего событий
 )
 
 print(total_cost)
+

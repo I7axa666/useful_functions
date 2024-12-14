@@ -79,7 +79,7 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
             # Перебираем количество доступных дней
             for available_days in range(availability_days, total_days + 1 - unavailability_days):
                 # Проверяем условия для расчета стоимости
-                if available_days < availability_days - successful_discharge + total or available_days > total_days - total_events + total:
+                if available_days < total or available_days > total_days - total_events + total:
                     total_cost = "-"
                 else:
                     # Вычисляем общую стоимость
@@ -104,12 +104,12 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
 # Пример вызова функции
 data = financial_result_matrices(
     price=437402,
-    contractual_volume=1,
-    availability_days=0, # дни готовности
-    unavailability_days=0, # дни неготовности
+    contractual_volume=6,
+    availability_days=19, # дни готовности
+    unavailability_days=2, # дни неготовности
     total_days=21,
     reduction_hours=4,
-    successful_discharge=0, # успешные разгрузки
+    successful_discharge=3, # успешные разгрузки
     total_discharge=5, # количество направленных команд
     total_events=5
 )
