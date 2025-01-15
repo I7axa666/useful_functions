@@ -5,7 +5,7 @@ from datetime import datetime, date
 
 def convert_xlsx_to_json(xls_file_name):
     # Загрузка данных из файла XLSX
-    file_path = os.path.join("C:", os.sep, "Users", "psolovey.GSN07", "Downloads", xls_file_name) # Укажите путь к вашему файлу
+    file_path = os.path.join("C:", os.sep, "Users", "pvsol", "Downloads", xls_file_name) # Укажите путь к вашему файлу
     df = pd.read_excel(file_path)
 
     # Преобразование столбца "дата" в формат ISO 8601 (гггг-мм-дд)
@@ -40,7 +40,7 @@ def convert_xlsx_to_json(xls_file_name):
 if __name__ == '__main__':
     data_dict = convert_xlsx_to_json('51070.xlsx')
     # Определение имени выходного файла
-    output_file_name = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', '51070.json')
+    output_file_name = os.path.join('C:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', '51070.json')
 
     # Запись данных в JSON файл
     with open(output_file_name, 'w', encoding='utf-8') as json_file:

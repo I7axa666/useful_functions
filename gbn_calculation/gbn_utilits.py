@@ -4,13 +4,15 @@ import os
 import pprint
 
 def get_hourly_consumption(file_name):
-    file_path = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', file_name)
+    file_path = os.path.join('C:', os.sep, "Users", "pvsol", "Downloads", file_name)
+    # file_path = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', file_name)
     with open(file_path) as f:
         days_for_gbn = json.load(f)
     return days_for_gbn
 
 def get_work_week_days():
-    file_path = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', 'weekdays.json')
+    file_path = os.path.join('C:', os.sep, "Users", "pvsol", "Downloads", 'weekdays.json')
+    # file_path = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', 'weekdays.json')
     with open(file_path) as f:
         days = json.load(f)
     return days
@@ -164,6 +166,21 @@ def initialize_result(days_for_gbn):
         'gbn_for_20_days': {},
     }
 
+def initialize_intermediate_result(days_for_gbn):
+    """Initialize the result dictionary with large/small values for indicators."""
+    large_value = float('inf')
+    small_value = float('-inf')
+    return {
+        'min_double_rmse_no_tweak': {'indicator': large_value, 'days': {}, 'rmse_data': {}},
+        'min_double_rmse_with_tweak': {'indicator': large_value, 'days': {}, 'rmse_data': {}},
+        'min_double_rmse_with_tweak_yesterday': {'indicator': large_value, 'days': {}, 'rmse_data': {}},
+        'max_rrmse_no_tweak': {'indicator': small_value, 'days': {}},
+        'max_rrmse_with_tweak': {'indicator': small_value, 'days': {}},
+        'max_rrmse_with_tweak_yesterday': {'indicator': small_value, 'days': {}},
+        'days_for_gbn': days_for_gbn,
+        'gbn_for_20_days': {},
+    }
+
 def update_result(result, rmse_data, weekdays):
     """Update the result dictionary based on RMSE and RRMSE values."""
     updated = False
@@ -184,3 +201,22 @@ def update_result(result, rmse_data, weekdays):
     # print(f"Updated: {updated}")
     return updated
 
+def update_intermediate_result(result, rmse_data, weekdays):
+    """Update the result dictionary based on RMSE and RRMSE values."""
+    updated = False
+    checks = [
+        ('min_double_rmse_no_tweak', rmse_data['rmse_no_tweak'], lambda x, y: x < y),
+        ('min_double_rmse_with_tweak', rmse_data['rmse_with_tweak'], lambda x, y: x < y),
+        ('min_double_rmse_with_tweak_yesterday', rmse_data['rmse_with_tweak_yesterday'], lambda x, y: x < y),
+        ('max_rrmse_no_tweak', rmse_data['rrmse_no_tweak'], lambda x, y: x > y),
+        ('max_rrmse_with_tweak', rmse_data['rrmse_with_tweak'], lambda x, y: x > y),
+        ('max_rrmse_with_tweak_yesterday', rmse_data['rrmse_with_tweak_yesterday'], lambda x, y: x > y),
+    ]
+    for key, value, comparator in checks:
+        if comparator(value, result[key]['indicator']):
+            updated = True
+            result[key]['indicator'] = value
+            result[key]['days'] = weekdays.copy()
+            result[key]['rmse_data'] = rmse_data.copy()
+    # print(f"Updated: {updated}")
+    return updated
