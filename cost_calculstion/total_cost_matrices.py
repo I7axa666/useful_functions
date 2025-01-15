@@ -105,7 +105,7 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
 data = financial_result_matrices(
     price=437402,
     contractual_volume=6,
-    availability_days=19, # дни готовности
+    availability_days=10, # дни готовности
     unavailability_days=2, # дни неготовности
     total_days=21,
     reduction_hours=4,

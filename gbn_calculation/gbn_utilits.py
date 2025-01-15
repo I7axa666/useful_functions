@@ -166,17 +166,21 @@ def initialize_result(days_for_gbn):
 
 def update_result(result, rmse_data, weekdays):
     """Update the result dictionary based on RMSE and RRMSE values."""
+    updated = False
     checks = [
-        ('min_double_rmse_no_tweak', rmse_data['doubled_rmse_no_tweak'], lambda x, y: x < y),
-        ('min_double_rmse_with_tweak', rmse_data['doubled_rmse_with_tweak'], lambda x, y: x < y),
-        ('min_double_rmse_with_tweak_yesterday', rmse_data['doubled_rmse_with_tweak_yesterday'], lambda x, y: x < y),
+        ('min_double_rmse_no_tweak', rmse_data['rmse_no_tweak'], lambda x, y: x < y),
+        ('min_double_rmse_with_tweak', rmse_data['rmse_with_tweak'], lambda x, y: x < y),
+        ('min_double_rmse_with_tweak_yesterday', rmse_data['rmse_with_tweak_yesterday'], lambda x, y: x < y),
         ('max_rrmse_no_tweak', rmse_data['rrmse_no_tweak'], lambda x, y: x > y),
         ('max_rrmse_with_tweak', rmse_data['rrmse_with_tweak'], lambda x, y: x > y),
         ('max_rrmse_with_tweak_yesterday', rmse_data['rrmse_with_tweak_yesterday'], lambda x, y: x > y),
     ]
     for key, value, comparator in checks:
         if comparator(value, result[key]['indicator']):
+            updated = True
             result[key]['indicator'] = value
             result[key]['days'] = weekdays.copy()
             result[key]['rmse_data'] = rmse_data.copy()
+    # print(f"Updated: {updated}")
+    return updated
 

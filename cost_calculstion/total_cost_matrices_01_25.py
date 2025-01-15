@@ -58,13 +58,19 @@ def calculate_total_cost(price, contractual_volume, availability_days, total_day
 #
 # print(total_cost)
 
-def financial_result_matrices(price, contractual_volume, availability_days, total_days, reduction_hours, total_events, successful_discharge, total_discharge, unavailability_days):
+def financial_result_matrices(price, contractual_volume, availability_days, total_days, reduction_hours, total_events,
+                              successful_discharge, total_sent_discharge, unavailability_days, unavailability_in_command=0):
     results = []
+    if total_sent_discharge == 0:
+        successful_discharge = 0
+    unsuccessful_discharge = total_sent_discharge - successful_discharge
+    possible_discharge_numb = total_events - unavailability_in_command
 
-    # Перебираем количество успешных разрядов
-    for successful in range(successful_discharge, total_discharge + 1):
+    # Перебор возможного количества разгрузок
+    for total in range(total_sent_discharge, possible_discharge_numb + 1):
+        posible_successful_discharge = total - unsuccessful_discharge
         # Перебираем общее количество разрядов
-        for total in range(successful_discharge, total_discharge + 1):
+        for successful in range(successful_discharge, posible_successful_discharge + 1):
             # Пропускаем итерацию, если успешных разрядов больше, чем общих
             if successful > total:
                 continue
@@ -72,11 +78,12 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
             # Формируем ключ для текущей комбинации успешных/общих разрядов
             key = f"{successful}/{total}"
             costs = []
-
+            print(key)
             # Перебираем количество доступных дней
             for available_days in range(availability_days, total_days + 1 - unavailability_days):
+                possible_days = total_days - total_events + total - unavailability_days + unavailability_in_command
                 # Проверяем условия для расчета стоимости
-                if available_days < total or available_days > total_days - total_events + total:
+                if available_days < total or available_days > possible_days:
                     total_cost = "-"
                 else:
                     # Вычисляем общую стоимость
@@ -102,12 +109,13 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
 data = financial_result_matrices(
     price=437402,
     contractual_volume=1,
-    availability_days=0, # дни готовности
-    unavailability_days=0, # дни неготовности
+    availability_days=10, # дни готовности
+    unavailability_days=2, # дни неготовности
     total_days=21,
     reduction_hours=4,
-    successful_discharge=0, # успешные разгрузки
-    total_discharge=5, # количество направленных команд
+    successful_discharge=3, # успешные разгрузки
+    unavailability_in_command=0, # неготовности в день события
+    total_sent_discharge=4, # количество направленных команд
     total_events=5
 )
 

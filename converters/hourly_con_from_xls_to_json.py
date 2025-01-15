@@ -34,12 +34,16 @@ def convert_xlsx_to_json(xls_file_name):
             intervals.append(interval_data)
         data_dict[date] = intervals
 
+
+    return data_dict
+
+if __name__ == '__main__':
+    data_dict = convert_xlsx_to_json('51070.xlsx')
     # Определение имени выходного файла
-    # output_file_name = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', '51070.json')
+    output_file_name = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', '51070.json')
 
     # Запись данных в JSON файл
-    # with open(output_file_name, 'w', encoding='utf-8') as json_file:
-    #     json.dump(data_dict, json_file, ensure_ascii=False, indent=4)
+    with open(output_file_name, 'w', encoding='utf-8') as json_file:
+        json.dump(data_dict, json_file, ensure_ascii=False, indent=4)
 
-    # print(f"Данные успешно сохранены в файл {output_file_name}")
-    return data_dict
+    print(f"Данные успешно сохранены в файл {output_file_name}")

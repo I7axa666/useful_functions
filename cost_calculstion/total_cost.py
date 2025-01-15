@@ -14,8 +14,8 @@ def calculate_total_cost(price, contractual_volume, availability_days, total_day
 
     # Расчет недопоставки
 
-    k_part = round(1.25 / 1.5 * (total_discharge / total_events), 4)
-    # k_part = round(1.25/1.5 * (total_discharge / total_events) ** (0.85 * (total_days - availability_days) / total_days) * (1 - 0.5 * (total_days - availability_days) / total_days), 4)
+    # k_part = round(1.25 / 1.5 * (total_discharge / total_events), 4)
+    k_part = round(1.25/1.5 * (total_discharge / total_events) ** (0.85 * (total_days - availability_days) / total_days) * (1 - 0.5 * (total_days - availability_days) / total_days), 4)
     delta_5 = round((k_part * 1.5 * max(0, distributed_volume)), 4)
     undersupply_1 = round((delta_5 * unsuccessful_discharge * reduction_hours) / max(1, (total_discharge * reduction_hours)), 4)
     print(f'k_part={k_part}')
@@ -48,13 +48,13 @@ def calculate_total_cost(price, contractual_volume, availability_days, total_day
 # Пример вызова функции
 total_cost = calculate_total_cost(
     price=437402,
-    contractual_volume=4,
-    availability_days=21,
+    contractual_volume=6,
+    availability_days=1,
     total_days=21,
     reduction_hours=4, # длительность разгрузки
-    successful_discharge=3, # успешные разгрузки
-    total_discharge=5, # нарпавленные команды
-    total_events=5 # всего событий
+    successful_discharge=0, # успешные разгрузки
+    total_discharge=1, # нарпавленные команды
+    total_events=1 # всего событий
 )
 
 print(total_cost)
