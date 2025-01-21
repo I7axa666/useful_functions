@@ -4,7 +4,7 @@ from openpyxl.utils import get_column_letter
 from datetime import datetime
 
 from converters.hourly_con_from_xls_to_json import convert_xlsx_to_json
-from get_rmse import get_best_rmse
+from get_rmse import get_best_rmse, get_best_rmse_with_max_deviation
 
 
 def forma5_from_json(data_dict):
@@ -82,8 +82,8 @@ def forma5_from_json(data_dict):
 
     # Сохранение файла с текущей датой и временем
     current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_filename = os.path.join("C:", os.sep, "Users", "pvsol", "Downloads", f'form_5_{current_time}.xlsx')
-    # output_filename = os.path.join("C:", os.sep, "Users", "psolovey.GSN07", "Downloads", f'form_5_{current_time}.xlsx')
+    # output_filename = os.path.join("C:", os.sep, "Users", "pvsol", "Downloads", f'form_5_{current_time}.xlsx')
+    output_filename = os.path.join("C:", os.sep, "Users", "psolovey.GSN07", "Downloads", f'form_5_{current_time}.xlsx')
     workbook.save(output_filename)
     print(f"Данные успешно сохранены в {output_filename}")
 
@@ -91,7 +91,8 @@ def forma5_from_json(data_dict):
 def form5_create(xlsx_file_name, time_zone):
     days_for_gbn = convert_xlsx_to_json(xlsx_file_name)
     data_dict = get_best_rmse(days_for_gbn, time_zone)
-    # forma5_from_json(data_dict)
+    # data_dict = get_best_rmse_with_max_deviation(days_for_gbn, time_zone)
+    forma5_from_json(data_dict)
 
 
 if __name__ == "__main__":

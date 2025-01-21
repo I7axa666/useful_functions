@@ -6,7 +6,7 @@ import pprint
 
 from gbn_utilits import get_hours_ranges, get_work_week_days, calculate_average_gbn, tweak_values, \
     apply_gbns_with_tweaks, compute_rmse, calculate_overall_average, preprocess_data, data_preparation_for_gbn, \
-    initialize_result, update_result, initialize_intermediate_result, update_intermediate_result
+    initialize_result, update_result, find_date_with_max_deviation, get_last_45_dates
 
 
 def get_rmse_rrmse(weekdays, time_zone):
@@ -86,42 +86,21 @@ def find_most_similar_days(consumption_data, time_zone):
     closest_indices = np.argsort(total_differences)[:20]
     closest_days = [days[idx] for idx in closest_indices]
 
-    # return {
-    #     # "central_pattern": central_pattern.tolist(),
-    #     "closest_days": sorted(closest_days)
-    # }
     return {key: val for key, val in consumption_data.items() if key in closest_days}
 
 
 def get_best_rmse(days_for_gbn, time_zone=1):
-    workdays = data_preparation_for_gbn(days_for_gbn)
+    workdays = data_preparation_for_gbn(get_last_45_dates(days_for_gbn))
     result = initialize_result(days_for_gbn)
     workdays_len = len(workdays)
-    z = 1
+
     while workdays_len > 20:
-        # current_min_rmse_data = get_rmse_rrmse(workdays, time_zone)
-        # min_rmse_dict = {
-        #     'min_double_rmse_no_tweak': current_min_rmse_data['min_double_rmse_no_tweak']['indicator'],
-        #     'min_double_rmse_with_tweak': current_min_rmse_data['min_double_rmse_with_tweak']['indicator'],
-        #     'min_double_rmse_with_tweak_yesterday': current_min_rmse_data['min_double_rmse_with_tweak_yesterday']['indicator'],
-        # }
-
-        intermediate_result = initialize_intermediate_result(days_for_gbn)
-
-        # print(intermediate_result)
+        intermediate_result = initialize_result(days_for_gbn)
 
         result_updated = False
         rmse_data = get_rmse_rrmse(workdays, time_zone)
-        update_intermediate_result(intermediate_result, rmse_data, workdays)
-        # print("data with first")
-        # pprint.pp(
-        #     {
-        #         'min_double_rmse_no_tweak': intermediate_result['min_double_rmse_no_tweak']['indicator'],
-        #         'min_double_rmse_with_tweak': intermediate_result['min_double_rmse_with_tweak']['indicator'],
-        #         'min_double_rmse_with_tweak_yesterday': intermediate_result['min_double_rmse_with_tweak_yesterday'][
-        #             'indicator'],
-        #     }
-        # )
+        update_result(intermediate_result, rmse_data, workdays)
+
         for key in workdays.keys():
             workdays_copy = workdays.copy()
             workdays_copy.pop(key)
@@ -130,25 +109,9 @@ def get_best_rmse(days_for_gbn, time_zone=1):
             res_up = update_result(result, rmse_data, workdays_copy)
             if res_up:
                 result_updated = True
-            update_intermediate_result(intermediate_result, rmse_data, workdays_copy)
-            print(z, min(rmse_data['rmse_no_tweak'], rmse_data['rmse_with_tweak'], rmse_data['rmse_with_tweak_yesterday']), key)
+            update_result(intermediate_result, rmse_data, workdays_copy)
 
-            # if z > 195 and z < 198:
-            #     print(z, min(rmse_data['rmse_no_tweak'], rmse_data['rmse_with_tweak'], rmse_data['rmse_with_tweak_yesterday']), key)
-            #     pprint.pp({
-            #     'min_double_rmse_no_tweak': result['min_double_rmse_no_tweak']['indicator'],
-            #     'min_double_rmse_with_tweak': result['min_double_rmse_with_tweak']['indicator'],
-            #     'min_double_rmse_with_tweak_yesterday': result['min_double_rmse_with_tweak_yesterday']['indicator'],
-            #     })
-                # pprint.pp(list(workdays_copy.keys()))
-                # pprint.pp(list(result['min_double_rmse_with_tweak']['days'].keys()))
-            z += 1
-        # print("intermediat result")
-        # pprint.pp({
-        #             'min_double_rmse_no_tweak': intermediate_result['min_double_rmse_no_tweak']['indicator'],
-        #             'min_double_rmse_with_tweak': intermediate_result['min_double_rmse_with_tweak']['indicator'],
-        #             'min_double_rmse_with_tweak_yesterday': intermediate_result['min_double_rmse_with_tweak_yesterday']['indicator'],
-        #         })
+            # print(min(rmse_data['rmse_no_tweak'], rmse_data['rmse_with_tweak'], rmse_data['rmse_with_tweak_yesterday']), key)
 
         if result_updated:
             min_rmse_dict = {
@@ -156,10 +119,8 @@ def get_best_rmse(days_for_gbn, time_zone=1):
                 'min_double_rmse_with_tweak': result['min_double_rmse_with_tweak']['indicator'],
                 'min_double_rmse_with_tweak_yesterday': result['min_double_rmse_with_tweak_yesterday']['indicator'],
             }
-            # print(list(min_rmse_dict.values()))
-            # print(list(workdays_copy.keys()))
+
             min_rmse_key = min(min_rmse_dict, key=min_rmse_dict.get)
-            # workdays = result[min_rmse_key]['days']
             workdays = intermediate_result[min_rmse_key]['days']
         else:
             min_rmse_dict = {
@@ -169,8 +130,10 @@ def get_best_rmse(days_for_gbn, time_zone=1):
             }
             min_rmse_key = min(min_rmse_dict, key=min_rmse_dict.get)
             workdays = intermediate_result[min_rmse_key]['days']
-            first_date = next(iter(workdays))
-            workdays.pop(first_date)
+
+            if workdays: # Проверяем, что workdays не пустой
+                first_date = next(iter(workdays))
+                workdays.pop(first_date)
 
         workdays_len -= 1
 
@@ -181,14 +144,6 @@ def get_best_rmse(days_for_gbn, time_zone=1):
     ]
 
     if 20 not in len_rmse_days:
-        min_rmse_dict = {
-            'min_double_rmse_no_tweak': result['min_double_rmse_no_tweak']['indicator'],
-            'min_double_rmse_with_tweak': result['min_double_rmse_with_tweak']['indicator'],
-            'min_double_rmse_with_tweak_yesterday': result['min_double_rmse_with_tweak_yesterday']['indicator'],
-        }
-        min_rmse_key = min(min_rmse_dict, key=min_rmse_dict.get)
-
-        # gbn_for_20_days = find_most_similar_days(result[min_rmse_key]['days'], time_zone)
         gbn_for_20_days = find_most_similar_days(workdays, time_zone)
         rmse_for_20 = {}
         rmse_dict = get_rmse_rrmse(gbn_for_20_days, time_zone)
@@ -198,16 +153,74 @@ def get_best_rmse(days_for_gbn, time_zone=1):
         result['gbn_for_20_days'] = rmse_for_20
 
         return result
-    # print(result['min_double_rmse_no_tweak']['indicator'])
-    # pprint.pp(list(result['min_double_rmse_no_tweak']['days'].keys()))
-    # pprint.pp(result)
+
     return result
 
+def get_best_rmse_with_max_deviation(days_for_gbn, time_zone=1):
+    workdays = data_preparation_for_gbn(get_last_45_dates(days_for_gbn))
+    hours_range = get_hours_ranges(time_zone)['hours_range']
+    result = initialize_result(days_for_gbn)
+    workdays_len = len(workdays)
 
-# if __name__ == "__main__":
-#     json_file = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', '51070.json')
-#     with open(json_file, 'r') as file:
-#         data = json.load(file)
-#     from gbn_calculation.form5_from_json import forma5_from_json
-#     data_dict = forma5_from_json(data)
-#     print(data_dict)
+    while workdays_len > 20:
+        intermediate_result = initialize_result(days_for_gbn)
+
+        result_updated = False
+        rmse_data = get_rmse_rrmse(workdays, time_zone)
+        update_result(intermediate_result, rmse_data, workdays)
+
+        for key in workdays.keys():
+            workdays_copy = workdays.copy()
+            workdays_copy.pop(key)
+            rmse_data = get_rmse_rrmse(workdays_copy, time_zone)
+            # print(rmse_data['rmse_no_tweak'], rmse_data['rmse_with_tweak'], rmse_data['rmse_with_tweak_yesterday'])
+            res_up = update_result(result, rmse_data, workdays_copy)
+            if res_up:
+                result_updated = True
+            update_result(intermediate_result, rmse_data, workdays_copy)
+
+            # print(min(rmse_data['rmse_no_tweak'], rmse_data['rmse_with_tweak'], rmse_data['rmse_with_tweak_yesterday']), key)
+
+        if result_updated:
+            min_rmse_dict = {
+                'min_double_rmse_no_tweak': result['min_double_rmse_no_tweak']['indicator'],
+                'min_double_rmse_with_tweak': result['min_double_rmse_with_tweak']['indicator'],
+                'min_double_rmse_with_tweak_yesterday': result['min_double_rmse_with_tweak_yesterday']['indicator'],
+            }
+
+            min_rmse_key = min(min_rmse_dict, key=min_rmse_dict.get)
+            workdays = intermediate_result[min_rmse_key]['days']
+        else:
+            min_rmse_dict = {
+                'min_double_rmse_no_tweak': intermediate_result['min_double_rmse_no_tweak']['indicator'],
+                'min_double_rmse_with_tweak': intermediate_result['min_double_rmse_with_tweak']['indicator'],
+                'min_double_rmse_with_tweak_yesterday': intermediate_result['min_double_rmse_with_tweak_yesterday'][
+                    'indicator'],
+            }
+            min_rmse_key = min(min_rmse_dict, key=min_rmse_dict.get)
+            workdays = intermediate_result[min_rmse_key]['days']
+
+            if workdays:  # Проверяем, что workdays не пустой
+                workdays.pop(find_date_with_max_deviation(workdays, hours_range))
+
+        workdays_len -= 1
+
+    len_rmse_days = [
+        len(result['min_double_rmse_no_tweak']['days']),
+        len(result['min_double_rmse_with_tweak']['days']),
+        len(result['min_double_rmse_with_tweak_yesterday']['days']),
+    ]
+
+    if 20 not in len_rmse_days:
+        gbn_for_20_days = find_most_similar_days(workdays, time_zone)
+        rmse_for_20 = {}
+        rmse_dict = get_rmse_rrmse(gbn_for_20_days, time_zone)
+        rmse_for_20['indicator'] = rmse_dict[min(rmse_dict, key=rmse_dict.get)]
+        rmse_for_20['rmse_data'] = rmse_dict
+        rmse_for_20['days'] = gbn_for_20_days
+        result['gbn_for_20_days'] = rmse_for_20
+
+        return result
+
+    return result
+

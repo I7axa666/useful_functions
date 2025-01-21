@@ -1,18 +1,19 @@
 from datetime import datetime, timedelta
 import json
 import os
+import statistics
 import pprint
 
 def get_hourly_consumption(file_name):
-    file_path = os.path.join('C:', os.sep, "Users", "pvsol", "Downloads", file_name)
-    # file_path = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', file_name)
+    # file_path = os.path.join('C:', os.sep, "Users", "pvsol", "Downloads", file_name)
+    file_path = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', file_name)
     with open(file_path) as f:
         days_for_gbn = json.load(f)
     return days_for_gbn
 
 def get_work_week_days():
-    file_path = os.path.join('C:', os.sep, "Users", "pvsol", "Downloads", 'weekdays.json')
-    # file_path = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', 'weekdays.json')
+    # file_path = os.path.join('C:', os.sep, "Users", "pvsol", "Downloads", 'weekdays.json')
+    file_path = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', 'weekdays.json')
     with open(file_path) as f:
         days = json.load(f)
     return days
@@ -129,6 +130,23 @@ def data_preparation_for_gbn(data):
     workdays_for_gbns = {date: data for date, data in data.items() if date in workdays}
     return workdays_for_gbns
 
+def get_last_45_dates(data):
+    # Получаем список всех ключей (дат) в словаре
+    all_dates = list(data.keys())
+
+    # Проверяем, есть ли в словаре хотя бы десять дат
+    if len(all_dates) < 45:
+        # Если меньше десяти, возвращаем пустой словарь или обрабатываем это как-то иначе
+        return {}
+
+    # Получаем последние десять дат
+    last_ten_dates = all_dates[-45:]
+
+    # Создаем новый словарь с последними десятью датами
+    last_ten_data = {date: data[date] for date in last_ten_dates}
+
+    return last_ten_data
+
 def get_hours_ranges(time_zone):
     hours_range = range(8, 22) if time_zone == 1 else range(5, 18)
     hours_range_for_tweak = range(16, 18) if time_zone == 1 else range(12, 14)
@@ -166,20 +184,6 @@ def initialize_result(days_for_gbn):
         'gbn_for_20_days': {},
     }
 
-def initialize_intermediate_result(days_for_gbn):
-    """Initialize the result dictionary with large/small values for indicators."""
-    large_value = float('inf')
-    small_value = float('-inf')
-    return {
-        'min_double_rmse_no_tweak': {'indicator': large_value, 'days': {}, 'rmse_data': {}},
-        'min_double_rmse_with_tweak': {'indicator': large_value, 'days': {}, 'rmse_data': {}},
-        'min_double_rmse_with_tweak_yesterday': {'indicator': large_value, 'days': {}, 'rmse_data': {}},
-        'max_rrmse_no_tweak': {'indicator': small_value, 'days': {}},
-        'max_rrmse_with_tweak': {'indicator': small_value, 'days': {}},
-        'max_rrmse_with_tweak_yesterday': {'indicator': small_value, 'days': {}},
-        'days_for_gbn': days_for_gbn,
-        'gbn_for_20_days': {},
-    }
 
 def update_result(result, rmse_data, weekdays):
     """Update the result dictionary based on RMSE and RRMSE values."""
@@ -201,22 +205,35 @@ def update_result(result, rmse_data, weekdays):
     # print(f"Updated: {updated}")
     return updated
 
-def update_intermediate_result(result, rmse_data, weekdays):
-    """Update the result dictionary based on RMSE and RRMSE values."""
-    updated = False
-    checks = [
-        ('min_double_rmse_no_tweak', rmse_data['rmse_no_tweak'], lambda x, y: x < y),
-        ('min_double_rmse_with_tweak', rmse_data['rmse_with_tweak'], lambda x, y: x < y),
-        ('min_double_rmse_with_tweak_yesterday', rmse_data['rmse_with_tweak_yesterday'], lambda x, y: x < y),
-        ('max_rrmse_no_tweak', rmse_data['rrmse_no_tweak'], lambda x, y: x > y),
-        ('max_rrmse_with_tweak', rmse_data['rrmse_with_tweak'], lambda x, y: x > y),
-        ('max_rrmse_with_tweak_yesterday', rmse_data['rrmse_with_tweak_yesterday'], lambda x, y: x > y),
-    ]
-    for key, value, comparator in checks:
-        if comparator(value, result[key]['indicator']):
-            updated = True
-            result[key]['indicator'] = value
-            result[key]['days'] = weekdays.copy()
-            result[key]['rmse_data'] = rmse_data.copy()
-    # print(f"Updated: {updated}")
-    return updated
+
+def find_date_with_max_deviation(data, hours_range):
+
+    # Вычисляем медианные суммы значений элементов с 8 по 20 для всех дат
+    sums = []
+    for date, values in data.items():
+        # Извлекаем значения элементов с 8 по 20, используя range
+        selected_values = [list(values[i].values())[0] for i in hours_range]
+        # Вычисляем сумму этих значений
+        sums.append(sum(selected_values))
+
+    # Вычисляем медиану сумм
+    median_sum = statistics.median(sums)
+
+    # Ищем дату с максимальным отклонением от медианы
+    max_deviation = 0
+    date_with_max_deviation = None
+
+    for date, values in data.items():
+        # Извлекаем значения элементов с 8 по 20, используя range
+        selected_values = [list(values[i].values())[0] for i in hours_range]
+        # Вычисляем сумму этих значений
+        current_sum = sum(selected_values)
+        # Вычисляем отклонение от медианы
+        deviation = abs(current_sum - median_sum)
+
+        # Обновляем максимальное отклонение и соответствующую дату
+        if deviation > max_deviation:
+            max_deviation = deviation
+            date_with_max_deviation = date
+
+    return date_with_max_deviation

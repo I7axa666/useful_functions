@@ -5,7 +5,7 @@ from datetime import datetime, date
 
 def convert_xlsx_to_json(xls_file_name):
     # Загрузка данных из файла XLSX
-    file_path = os.path.join("C:", os.sep, "Users", "pvsol", "Downloads", xls_file_name) # Укажите путь к вашему файлу
+    file_path = os.path.join("C:", os.sep, "Users", "psolovey.GSN07", "Downloads", xls_file_name) # Укажите путь к вашему файлу
     df = pd.read_excel(file_path)
 
     # Преобразование столбца "дата" в формат ISO 8601 (гггг-мм-дд)
