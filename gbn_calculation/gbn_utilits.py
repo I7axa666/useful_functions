@@ -6,14 +6,14 @@ import pprint
 
 def get_hourly_consumption(file_name):
     # file_path = os.path.join('C:', os.sep, "Users", "pvsol", "Downloads", file_name)
-    file_path = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', file_name)
+    file_path = f"templates/{file_name}"
     with open(file_path) as f:
         days_for_gbn = json.load(f)
     return days_for_gbn
 
 def get_work_week_days():
     # file_path = os.path.join('C:', os.sep, "Users", "pvsol", "Downloads", 'weekdays.json')
-    file_path = os.path.join('Z:', os.sep, 'Рабочий стол', 'pdfProject', 'templates', 'weekdays.json')
+    file_path = r'C:/Users/psolovey.GSN07/Desktop/automation/useful_functions/templates/weekdays.json'
     with open(file_path) as f:
         days = json.load(f)
     return days

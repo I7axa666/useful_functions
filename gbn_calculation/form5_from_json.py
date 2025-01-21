@@ -3,7 +3,8 @@ from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from datetime import datetime
 
-from converters.hourly_con_from_xls_to_json import convert_xlsx_to_json
+# from converters.hourly_con_from_xls_to_json import convert_xlsx_to_json
+from useful_functions.converters.hourly_con_from_xls_to_json import convert_xlsx_to_json
 from get_rmse import get_best_rmse, get_best_rmse_with_max_deviation
 
 

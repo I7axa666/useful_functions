@@ -91,7 +91,7 @@ def find_most_similar_days(consumption_data, time_zone):
 
 def get_best_rmse(days_for_gbn, time_zone=1):
     workdays = data_preparation_for_gbn(get_last_45_dates(days_for_gbn))
-    result = initialize_result(days_for_gbn)
+    result = initialize_result(get_last_45_dates(days_for_gbn))
     workdays_len = len(workdays)
 
     while workdays_len > 20:

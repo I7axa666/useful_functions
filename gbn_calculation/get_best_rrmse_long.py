@@ -1,6 +1,6 @@
 import itertools
 import concurrent.futures
-from gbn_calculation.gbn_utilits import data_preparation_for_gbn, initialize_result, update_result
+from useful_functions.gbn_utilits import data_preparation_for_gbn, initialize_result, update_result
 from gbn_calculation.get_rmse import get_rmse_rrmse
 
 def generate_combinations(days_list, window=45):
