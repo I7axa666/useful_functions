@@ -65,7 +65,7 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
         successful_discharge = 0
     unsuccessful_discharge = total_sent_discharge - successful_discharge
     possible_discharge_numb = total_events - unavailability_in_command
-
+    available_days_with_event = 0
     # Перебор возможного количества разгрузок
     for total in range(total_sent_discharge, possible_discharge_numb + 1):
         posible_successful_discharge = total - unsuccessful_discharge
@@ -83,7 +83,7 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
             for available_days in range(availability_days, total_days + 1 - unavailability_days):
                 possible_days = total_days - total_events + total - unavailability_days + unavailability_in_command
                 # Проверяем условия для расчета стоимости
-                if available_days < total or available_days > possible_days:
+                if available_days < total or available_days > possible_days or available_days < availability_days + available_days_with_event:
                     total_cost = "-"
                 else:
                     # Вычисляем общую стоимость
@@ -102,20 +102,22 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
 
             # Добавляем текущий результат в общий список
             results.append({key: costs})
+        available_days_with_event += 1
     # print(results)
     return results
+
 
 # Пример вызова функции
 data = financial_result_matrices(
     price=437402,
-    contractual_volume=1,
-    availability_days=10, # дни готовности
-    unavailability_days=2, # дни неготовности
-    total_days=21,
+    contractual_volume=6,
+    availability_days=6, # дни готовности
+    unavailability_days=7, # дни неготовности
+    total_days=17,
     reduction_hours=4,
-    successful_discharge=3, # успешные разгрузки
-    unavailability_in_command=0, # неготовности в день события
-    total_sent_discharge=4, # количество направленных команд
+    successful_discharge=1, # успешные разгрузки
+    unavailability_in_command=1, # неготовности в день события
+    total_sent_discharge=2, # количество направленных команд
     total_events=5
 )
 
