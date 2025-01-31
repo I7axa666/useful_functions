@@ -78,7 +78,7 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
             # Формируем ключ для текущей комбинации успешных/общих разрядов
             key = f"{successful}/{total}"
             costs = []
-            print(key)
+            # print(key)
             # Перебираем количество доступных дней
             for available_days in range(availability_days, total_days + 1 - unavailability_days):
                 possible_days = total_days - total_events + total - unavailability_days + unavailability_in_command
@@ -109,15 +109,15 @@ def financial_result_matrices(price, contractual_volume, availability_days, tota
 
 # Пример вызова функции
 data = financial_result_matrices(
-    price=437402,
-    contractual_volume=6,
-    availability_days=6, # дни готовности
-    unavailability_days=7, # дни неготовности
-    total_days=17,
+    price=514000,
+    contractual_volume=13,
+    availability_days=0, # дни готовности
+    unavailability_days=0, # дни неготовности
+    total_days=21,
     reduction_hours=4,
-    successful_discharge=1, # успешные разгрузки
-    unavailability_in_command=1, # неготовности в день события
-    total_sent_discharge=2, # количество направленных команд
+    successful_discharge=0, # успешные разгрузки
+    unavailability_in_command=0, # неготовности в день события
+    total_sent_discharge=0, # количество направленных команд
     total_events=5
 )
 

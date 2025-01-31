@@ -1,4 +1,6 @@
 import os
+import pprint
+
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from datetime import datetime
@@ -91,10 +93,14 @@ def forma5_from_json(data_dict):
 
 def form5_create(xlsx_file_name, time_zone):
     days_for_gbn = convert_xlsx_to_json(xlsx_file_name)
+
+    import json
+    # print(json.dumps(days_for_gbn))
     data_dict = get_best_rmse(days_for_gbn, time_zone)
-    # data_dict = get_best_rmse_with_max_deviation(days_for_gbn, time_zone)
-    forma5_from_json(data_dict)
+    # data_dict = get_best_rmse_with_max_deviation(days_for_gbn, time_zone)  #это не нужно
+    pprint.pp(data_dict)
+    # forma5_from_json(data_dict)
 
 
 if __name__ == "__main__":
-    form5_create("51070.xlsx", 1)
+    form5_create("51070.xlsx", 2)
